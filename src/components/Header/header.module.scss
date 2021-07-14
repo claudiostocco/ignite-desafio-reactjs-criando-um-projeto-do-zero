@@ -1,1 +1,14 @@
-// TODO
+.container {
+    height: 6.56rem;
+    border-bottom: 1px solid black;
+}
+
+.content {
+    max-width: 1120px;
+    height: 6.56rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+
+    display: flex;
+    align-items: center;
+}
