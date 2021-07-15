@@ -4,11 +4,12 @@ import Prismic from '@prismicio/client'
 import { RichText } from 'prismic-dom';
 import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
-import { FiCalendar, FiClock, FiUser } from 'react-icons/fi'
+import { FiCalendar, FiUser } from 'react-icons/fi'
 
 import { getPrismicClient } from '../services/prismic';
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { useState } from 'react';
 
 interface Post {
   uid?: string;
@@ -29,26 +30,53 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-function temBotao(next_page) {
-  console.log(next_page)
-  return (
-    next_page ?
-      <div>
-        <a href="#">Carregar mais posts</a>
-      </div>
-    : ''
-  )
-}
-
 export default function Home({ postsPagination }: HomeProps) {
-  const { results, next_page } = postsPagination;
-  console.log('1',next_page)
-  console.log('2',postsPagination.next_page)
+  const [postsPage,setPostsPage] = useState(postsPagination)
+  const { results, next_page } = postsPage;
 
+  const chargeMorePosts = async next_page => {
+    if (next_page) {
+      const response = await fetch(next_page)
+      if (response.status === 200) {
+        const postsResponse = await response.json()
+        const posts = postsResponse.results.map(post => {
+          return {
+            uid: post.uid,
+            first_publication_date: post.first_publication_date,
+            data: {
+              title: post.data.title,
+              subtitle: post.data.subtitle,
+              author: post.data.author
+            }
+          }
+        })
+      
+        const newPagination = {
+          next_page: postsResponse.next_page,
+          results: [...results,...posts]
+        }
+      
+        console.log(newPagination)
+        setPostsPage(newPagination)
+      }
+    }
+  }
+
+  function temBotao(next_page) {
+    console.log(next_page)
+    return (
+      next_page ?
+        <div>
+          <a className={styles.botaoCarregar} href="#" onClick={() => chargeMorePosts(next_page)}>Carregar mais posts</a>
+        </div>
+      : ''
+    )
+  }
+  
   return (
     <main className={styles.container}>
       <div className={styles.logo}>
-        <img src="/images/logo.svg" alt="Logo" />
+        <img src="/images/logo.svg" alt="logo" />
       </div>
       <div className={styles.postContent}>
         {results.map(post => (
@@ -57,9 +85,9 @@ export default function Home({ postsPagination }: HomeProps) {
               <article>
                 <h1>{post.data.title}</h1>
                 <p>{post.data.subtitle}</p>
-                <div>
+                <div className={styles.info}>
                   <FiCalendar/>
-                  <time>{post.first_publication_date}</time>
+                  <time>{format(new Date(post.first_publication_date),"dd MMM yyyy",{locale: ptBR})}</time>
                   <FiUser/>
                   <span>{post.data.author}</span>
                 </div>
@@ -79,13 +107,13 @@ export const getStaticProps: GetStaticProps = async () => {
     Prismic.predicates.at('document.type', 'posts')
   ],{
     fetch: ['posts.title','posts.subtitle','posts.author'],
-    pageSize: 2
+    pageSize: 1
   });
 
   const posts = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(new Date(post.first_publication_date),"'Hoje é' eeee",{locale: ptBR}),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,

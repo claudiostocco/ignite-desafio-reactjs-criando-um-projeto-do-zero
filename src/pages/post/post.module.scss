@@ -1,1 +1,43 @@
-// TODO
+.container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 2rem;
+
+    .imageContainer {
+        height: 440px;
+    }
+
+    .postContainer {
+        max-width: 720px;
+        margin: 0 auto;
+
+        header {
+            margin-bottom: 2rem;
+            
+            h1 {
+               font-size: 3rem; 
+               line-height: 3.625rem;
+               color: var(--heading);
+            }
+
+            .info {
+                height: 3.25rem;
+                display: flex;
+                align-items: center;
+                color: var(--info);
+
+                time {
+                    margin: 0 2.5rem 0 0.6rem;
+                }
+
+                span {
+                    margin: 0 2.5rem 0 0.6rem;
+                }
+            }
+        }
+
+        .postContent {
+
+        }
+    }
+}

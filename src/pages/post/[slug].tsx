@@ -1,7 +1,10 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
-import Header from '../../components/Header';
+import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
+import { format } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
 
 import { getPrismicClient } from '../../services/prismic';
+import Header from '../../components/Header';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
@@ -30,7 +33,28 @@ interface PostProps {
 export default function Post() {
   return (<>
       <Header />
-      <h1>Teste</h1>
+      <main className={styles.container}>
+        <div className={styles.imageContainer}>
+          <img src="" alt="" />
+        </div>
+        <article className={styles.postContainer}>
+          <header>
+            <h1>post.data.title</h1>
+            <div className={styles.info}>
+              <FiCalendar />
+              <time>{format(new Date(), "dd MMM yyyy", { locale: ptBR })}</time>
+              <FiUser />
+              <span>post.data.author</span>
+              <FiClock />
+              <span>4 min</span>
+            </div>
+          </header>
+          <section className={styles.postContent}>
+
+          </section>
+
+        </article>
+      </main>
     </>
   )
 }
