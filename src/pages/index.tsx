@@ -1,9 +1,10 @@
+import Link from 'next/link'
 import { GetStaticProps } from 'next';
 import Prismic from '@prismicio/client'
-import { Link, RichText } from 'prismic-dom';
+import { RichText } from 'prismic-dom';
 import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
-import { FaCalendar, FaClock, FaUser } from 'react-icons/fa'
+import { FiCalendar, FiClock, FiUser } from 'react-icons/fi'
 
 import { getPrismicClient } from '../services/prismic';
 import commonStyles from '../styles/common.module.scss';
@@ -28,26 +29,46 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
-  const { results } = postsPagination;
+function temBotao(next_page) {
+  console.log(next_page)
   return (
-    <main>
-      {results.map(post => (
-        <Link key={post.uid} href={`/post/${post.uid}`}>
-          <a>
-            <article>
-              <h1>{post.data.title}</h1>
-              <p>{post.data.subtitle}</p>
-              <div>
-                <FaCalendar/>
-                <time>{post.first_publication_date}</time>
-                <FaUser/>
-                <span>{post.data.author}</span>
-              </div>
-            </article>
-          </a>
-        </Link>
-      ))}
+    next_page ?
+      <div>
+        <a href="#">Carregar mais posts</a>
+      </div>
+    : ''
+  )
+}
+
+export default function Home({ postsPagination }: HomeProps) {
+  const { results, next_page } = postsPagination;
+  console.log('1',next_page)
+  console.log('2',postsPagination.next_page)
+
+  return (
+    <main className={styles.container}>
+      <div className={styles.logo}>
+        <img src="/images/logo.svg" alt="Logo" />
+      </div>
+      <div className={styles.postContent}>
+        {results.map(post => (
+          <Link key={post.uid} href={`/post/${post.uid}`}>
+            <a>
+              <article>
+                <h1>{post.data.title}</h1>
+                <p>{post.data.subtitle}</p>
+                <div>
+                  <FiCalendar/>
+                  <time>{post.first_publication_date}</time>
+                  <FiUser/>
+                  <span>{post.data.author}</span>
+                </div>
+              </article>
+            </a>
+          </Link>
+        ))}
+        {temBotao(next_page)}
+      </div>
     </main>
   )
 }
