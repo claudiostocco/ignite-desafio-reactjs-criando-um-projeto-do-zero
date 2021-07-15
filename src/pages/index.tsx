@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { GetStaticProps } from 'next';
 import Prismic from '@prismicio/client'
-import { RichText } from 'prismic-dom';
 import { format } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
 import { FiCalendar, FiUser } from 'react-icons/fi'
@@ -32,11 +31,11 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
   const [postsPage,setPostsPage] = useState(postsPagination)
-  const { results, next_page } = postsPage;
+  //const { results, next_page } = postsPage;
 
-  const chargeMorePosts = async next_page => {
-    if (next_page) {
-      const response = await fetch(next_page)
+  const chargeMorePosts = async () => {
+    if (postsPage.next_page) {
+      const response = await fetch(postsPage.next_page)
       if (response.status === 200) {
         const postsResponse = await response.json()
         const posts = postsResponse.results.map(post => {
@@ -53,24 +52,13 @@ export default function Home({ postsPagination }: HomeProps) {
       
         const newPagination = {
           next_page: postsResponse.next_page,
-          results: [...results,...posts]
+          results: [...postsPage.results,...posts]
         }
       
         console.log(newPagination)
         setPostsPage(newPagination)
       }
     }
-  }
-
-  function temBotao(next_page) {
-    console.log(next_page)
-    return (
-      next_page ?
-        <div>
-          <a className={styles.botaoCarregar} href="#" onClick={() => chargeMorePosts(next_page)}>Carregar mais posts</a>
-        </div>
-      : ''
-    )
   }
   
   return (
@@ -79,7 +67,7 @@ export default function Home({ postsPagination }: HomeProps) {
         <img src="/images/logo.svg" alt="logo" />
       </div>
       <div className={styles.postContent}>
-        {results.map(post => (
+        {postsPage.results.map(post => (
           <Link key={post.uid} href={`/post/${post.uid}`}>
             <a>
               <article>
@@ -95,7 +83,11 @@ export default function Home({ postsPagination }: HomeProps) {
             </a>
           </Link>
         ))}
-        {temBotao(next_page)}
+        {postsPage.next_page && (
+          <button className={styles.botaoCarregar} href="#" onClick={chargeMorePosts}>
+            Carregar mais posts
+          </button>
+        )}
       </div>
     </main>
   )
