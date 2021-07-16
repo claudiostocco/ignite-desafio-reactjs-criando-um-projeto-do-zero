@@ -4,13 +4,13 @@ import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { useRouter } from 'next/router';
 
 import { getPrismicClient } from '../../services/prismic';
 import Header from '../../components/Header';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import { useRouter } from 'next/router';
 
 interface Post {
   first_publication_date: string | null;
@@ -75,7 +75,7 @@ export default function Post({ post }: PostProps): JSX.Element {
             </div>
           </header>
           {post.data.content.map(content => (
-            <article className={styles.postContent}>
+            <article key={content.heading} className={styles.postContent}>
               <h2>{content.heading}</h2>
               <div
                 // eslint-disable-next-line react/no-danger
@@ -111,25 +111,6 @@ export const getStaticProps: GetStaticProps = async context => {
   const { slug } = context.params;
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('posts', String(slug), {});
-
-  // const postContent = {
-  //   first_publication_date: response.first_publication_date,
-  //   data: {
-  //     title: response.data.title,
-  //     banner: {
-  //       url: response.data.banner,
-  //     },
-  //     author: response.data.author,
-  //     content: response.data.content.map(content => ({
-  //       heading: content.heading,
-  //       body: content.body.map(body => ({
-  //         text: body,
-  //       })),
-  //     })),
-  //   },
-  // };
-
-  // console.log(postContent);
 
   return {
     props: {

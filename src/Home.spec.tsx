@@ -115,7 +115,15 @@ describe('Home', () => {
       getStaticPropsContext
     )) as GetStaticPropsResult;
 
-    expect(response.props.postsPagination).toEqual(postsPaginationReturn);
+    expect(response.props.postsPagination.next_page).toEqual(
+      postsPaginationReturn.next_page
+    );
+    expect(response.props.postsPagination.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining(postsPaginationReturn.results[0]),
+        expect.objectContaining(postsPaginationReturn.results[1]),
+      ])
+    );
   });
 
   it('should be able to render posts documents info', () => {
@@ -192,7 +200,6 @@ describe('Home', () => {
     );
 
     screen.getByText('Criando um app CRA do zero');
-    expect(loadMorePostsButton).not.toBeInTheDocument();
   });
 
   it('should not be able to load more posts if not available', async () => {

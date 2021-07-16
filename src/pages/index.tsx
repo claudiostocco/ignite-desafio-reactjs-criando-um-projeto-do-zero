@@ -1,14 +1,15 @@
-import Link from 'next/link'
 import { GetStaticProps } from 'next';
-import Prismic from '@prismicio/client'
-import { format } from 'date-fns'
-import ptBR from 'date-fns/locale/pt-BR'
-import { FiCalendar, FiUser } from 'react-icons/fi'
+import Link from 'next/link';
+import Prismic from '@prismicio/client';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+import { FiCalendar, FiUser } from 'react-icons/fi';
 
-import { getPrismicClient } from '../services/prismic';
-import commonStyles from '../styles/common.module.scss';
-import styles from './home.module.scss';
 import { useState } from 'react';
+import ApiSearchResponse from '@prismicio/client/types/ApiSearchResponse';
+import { getPrismicClient } from '../services/prismic';
+import styles from './home.module.scss';
+import commonStyles from '../styles/common.module.scss';
 
 interface Post {
   uid?: string;
@@ -29,106 +30,81 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
-  const [postsPage,setPostsPage] = useState(postsPagination)
-  //const { results, next_page } = postsPage;
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
+  const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [hasMorePosts, setHasMorePosts] = useState(!!postsPagination.next_page);
 
-  const chargeMorePosts = async () => {
-    if (postsPage.next_page) {
-      const response = await fetch(postsPage.next_page)
-      if (response.status === 200) {
-        const postsResponse = await response.json()
-        const posts = postsResponse.results.map(post => {
-          return {
-            uid: post.uid,
-            first_publication_date: post.first_publication_date,
-            data: {
-              title: post.data.title,
-              subtitle: post.data.subtitle,
-              author: post.data.author
-            }
-          }
-        })
-      
-        const newPagination = {
-          next_page: postsResponse.next_page,
-          results: [...postsPage.results,...posts]
-        }
-      
-        console.log(newPagination)
-        setPostsPage(newPagination)
-      }
-    }
+  async function handleLoadMorePosts(): Promise<void> {
+    const loadMorePostsResponse: ApiSearchResponse = await (
+      await fetch(postsPagination.next_page)
+    ).json();
+
+    setPosts(oldPosts => [...oldPosts, ...loadMorePostsResponse.results]);
+    setHasMorePosts(!!loadMorePostsResponse.next_page);
   }
-  
+
   return (
-    <main className={styles.container}>
-      <div className={styles.logo}>
+    <div className={`${commonStyles.contentContainer} ${styles.container}`}>
+      <header>
         <img src="/images/logo.svg" alt="logo" />
-      </div>
-      <div className={styles.postContent}>
-        {postsPage.results.map(post => (
-          <Link key={post.uid} href={`/post/${post.uid}`}>
-            <a>
-              <article>
-                <h1>{post.data.title}</h1>
-                <p>{post.data.subtitle}</p>
-                <div className={styles.info}>
-                  <FiCalendar/>
-                  <time>{format(new Date(post.first_publication_date),"dd MMM yyyy",{locale: ptBR})}</time>
-                  <FiUser/>
-                  <span>{post.data.author}</span>
-                </div>
-              </article>
-            </a>
-          </Link>
-        ))}
-        {postsPage.next_page && (
-          <button className={styles.botaoCarregar} href="#" onClick={chargeMorePosts}>
+      </header>
+
+      <main>
+        {posts.map(post => {
+          return (
+            <Link href={`/post/${post.uid}`} key={post.uid}>
+              <a className={styles.post}>
+                <article>
+                  <h2>{post.data.title}</h2>
+                  <p>{post.data.subtitle}</p>
+
+                  <section>
+                    <div>
+                      <FiCalendar />
+                      <span style={{ textTransform: 'capitalize' }}>
+                        {format(
+                          new Date(post.first_publication_date),
+                          'dd MMM yyyy',
+                          {
+                            locale: ptBR,
+                          }
+                        )}
+                      </span>
+                    </div>
+
+                    <div>
+                      <FiUser />
+                      <span>{post.data.author}</span>
+                    </div>
+                  </section>
+                </article>
+              </a>
+            </Link>
+          );
+        })}
+
+        {hasMorePosts && (
+          <button type="button" onClick={handleLoadMorePosts}>
             Carregar mais posts
           </button>
         )}
-      </div>
-    </main>
-  )
+      </main>
+    </div>
+  );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   const prismic = getPrismicClient();
-  const postsResponse = await prismic.query([
-    Prismic.predicates.at('document.type', 'posts')
-  ],{
-    fetch: ['posts.title','posts.subtitle','posts.author'],
-    pageSize: 1
-  });
-
-  const posts = postsResponse.results.map(post => {
-    return {
-      uid: post.uid,
-      first_publication_date: post.first_publication_date,
-      data: {
-        title: post.data.title,
-        subtitle: post.data.subtitle,
-        author: post.data.author
-      }
+  const postsResponse = await prismic.query(
+    Prismic.Predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
     }
-  })
-
-  // title: RichText.asText(post.data.title),
-  // subtitle: RichText.asText(post.data.subtitle),
-  // author: RichText.asText(post.data.author)
-
-  const postsPagination = {
-    next_page: postsResponse.next_page,
-    results: posts
-  }
-
-  console.log(postsPagination)
+  );
 
   return {
     props: {
-      postsPagination
+      postsPagination: postsResponse,
     },
-    revalidate: 30 * 60 // 30 minutes
-  }
+  };
 };
