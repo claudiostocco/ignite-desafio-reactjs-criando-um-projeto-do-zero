@@ -29,10 +29,12 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element{
+type ChargeMorePosts = () => Promise<void>;
+
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const [postsPage, setPostsPage] = useState(postsPagination);
 
-  const chargeMorePosts = async () => {
+  const chargeMorePosts: ChargeMorePosts = async () => {
     if (postsPage.next_page) {
       const response = await fetch(postsPage.next_page);
       if (response.status === 200) {
@@ -45,16 +47,16 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element{
               title: post.data.title,
               subtitle: post.data.subtitle,
               author: post.data.author,
-            }
-          }
+            },
+          };
         });
         setPostsPage(oldPagination => ({
           next_page: postsResponse.next_page,
-          results: [...oldPagination.results, ...posts]
-        }))
+          results: [...oldPagination.results, ...posts],
+        }));
       }
     }
-  }
+  };
 
   return (
     <main className={styles.container}>
@@ -95,7 +97,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element{
         )}
       </div>
     </main>
-  )
+  );
 }
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -116,19 +118,19 @@ export const getStaticProps: GetStaticProps = async () => {
         title: post.data.title,
         subtitle: post.data.subtitle,
         author: post.data.author,
-      }
-    }
-  })
+      },
+    };
+  });
 
   const postsPagination = {
     next_page: postsResponse.next_page,
     results: posts,
-  }
+  };
 
   return {
     props: {
       postsPagination,
     },
     revalidate: 30 * 60, // 30 minutes
-  }
+  };
 };
