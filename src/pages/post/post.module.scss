@@ -21,10 +21,15 @@
             }
 
             .info {
-                height: 3.25rem;
+                height: 4rem;
                 display: flex;
                 align-items: center;
                 color: var(--info);
+                margin-bottom: 1rem;
+
+                div {
+                    margin: 0.5rem 0;
+                }
 
                 time {
                     margin: 0 2.5rem 0 0.6rem;
@@ -36,8 +41,40 @@
             }
         }
 
-        .postContent {
-            
+        hr {
+            color: #d7d7d7;
+            opacity: 0.1;
+            margin: 2.5rem 0;
+        }
+
+        .navegacao {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+
+            span {
+                &:first-child {
+                    text-align: left;
+                }
+
+                &:last-child {
+                    text-align: right;
+                }
+
+                p {
+                    font-size: 1.075rem;
+                    font-style: normal;
+                    font-weight: 400;
+                }
+
+                a {
+                    font-size: 1rem;
+                    font-style: normal;
+                    font-weight: 600;
+                    color: var(--highlight);
+                }
+            }
         }
     }
 }

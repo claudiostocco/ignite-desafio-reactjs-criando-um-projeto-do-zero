@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { SiblingPost } from './post/[slug]';
 
 interface Post {
   uid?: string;
@@ -18,6 +19,8 @@ interface Post {
     subtitle: string;
     author: string;
   };
+  priorPost?: SiblingPost;
+  nextPost?: SiblingPost;
 }
 
 interface PostPagination {
@@ -27,32 +30,33 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview?: boolean;
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element{
+export default function Home({ postsPagination, preview = false }: HomeProps): JSX.Element {
   const [postsPage, setPostsPage] = useState(postsPagination);
 
   const chargeMorePosts = async () => {
     if (postsPage.next_page) {
       const response = await fetch(postsPage.next_page);
-      if (response.status === 200) {
-        const postsResponse = await response.json();
-        const posts = postsResponse.results.map(post => {
-          return {
-            uid: post.uid,
-            first_publication_date: post.first_publication_date,
-            data: {
-              title: post.data.title,
-              subtitle: post.data.subtitle,
-              author: post.data.author,
-            }
+      // if (response.status === 200) {
+      const postsResponse = await response.json();
+      const posts = postsResponse.results.map(post => {
+        return {
+          uid: post.uid,
+          first_publication_date: post.first_publication_date,
+          data: {
+            title: post.data.title,
+            subtitle: post.data.subtitle,
+            author: post.data.author,
           }
-        });
-        setPostsPage(oldPagination => ({
-          next_page: postsResponse.next_page,
-          results: [...oldPagination.results, ...posts]
-        }))
-      }
+        }
+      });
+      setPostsPage(oldPagination => ({
+        next_page: postsResponse.next_page,
+        results: [...oldPagination.results, ...posts]
+      }));
+      // }
     }
   }
 
@@ -84,6 +88,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element{
             </a>
           </Link>
         ))}
+
         {postsPage.next_page && (
           <button
             type="button"
@@ -93,18 +98,30 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element{
             Carregar mais posts
           </button>
         )}
+
+        {preview && (
+          <aside>
+            <Link href="/api/exit-preview">
+              <a>Sair do modo Preview</a>
+            </Link>
+          </aside>
+        )}
       </div>
     </main>
   )
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({ preview = false, previewData, }) => {
+  console.log('preview', preview);
+  console.log('previewData', previewData);
+
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 1,
+      pageSize: 2,
+      ref: previewData?.ref ?? null,
     }
   );
 
@@ -128,7 +145,8 @@ export const getStaticProps: GetStaticProps = async () => {
   return {
     props: {
       postsPagination,
+      preview,
     },
     revalidate: 30 * 60, // 30 minutes
-  }
+  };
 };
