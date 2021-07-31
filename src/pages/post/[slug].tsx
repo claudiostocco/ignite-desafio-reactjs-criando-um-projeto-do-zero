@@ -6,13 +6,12 @@ import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 import { getPrismicClient } from '../../services/prismic';
 import Header from '../../components/Header';
 
-import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import Link from 'next/link';
 
 interface Post {
   first_publication_date: string | null;
@@ -35,7 +34,7 @@ interface Post {
 export type SiblingPost = {
   title: string;
   slug: string;
-}
+};
 
 interface PostProps {
   priorPost?: SiblingPost;
@@ -43,23 +42,28 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post({ priorPost = null, nextPost = null, post }: PostProps): JSX.Element {
+export default function Post({
+  priorPost = null,
+  nextPost = null,
+  post,
+}: PostProps): JSX.Element {
   const router = useRouter();
   if (router.isFallback) {
     return <div>Carregando...</div>;
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    let script = document.createElement("script");
-    let anchor = document.getElementById("inject-comments-for-uterances");
-    script.setAttribute("src", "https://utteranc.es/client.js");
-    script.setAttribute("crossorigin", "anonymous");
-    script.setAttribute("async", '');
-    script.setAttribute("repo", "claudiostocco/ignite-utterances");
-    script.setAttribute("issue-term", "pathname");
-    script.setAttribute("theme", "github-light");
+    const script = document.createElement('script');
+    const anchor = document.getElementById('inject-comments-for-uterances');
+    script.setAttribute('src', 'https://utteranc.es/client.js');
+    script.setAttribute('crossorigin', 'anonymous');
+    script.setAttribute('async', '');
+    script.setAttribute('repo', 'claudiostocco/ignite-utterances');
+    script.setAttribute('issue-term', 'pathname');
+    script.setAttribute('theme', 'github-light');
     anchor.appendChild(script);
-  }, [])
+  }, []);
 
   function readingTime(): number {
     const qtd = post.data.content.reduce((acc, contentValue) => {
@@ -89,9 +93,13 @@ export default function Post({ priorPost = null, nextPost = null, post }: PostPr
               <div>
                 <FiCalendar />
                 <time>
-                  {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-                    locale: ptBR,
-                  })}
+                  {format(
+                    new Date(post.first_publication_date),
+                    'dd MMM yyyy',
+                    {
+                      locale: ptBR,
+                    }
+                  )}
                 </time>
                 <FiUser />
                 <span>{post.data.author}</span>
@@ -101,9 +109,13 @@ export default function Post({ priorPost = null, nextPost = null, post }: PostPr
                 <div>
                   <span>
                     * editado em
-                    {format(new Date(post.last_publication_date), ' dd MMM yyyy', {
-                      locale: ptBR,
-                    })}
+                    {format(
+                      new Date(post.last_publication_date),
+                      ' dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
                   </span>
                 </div>
               </div>
@@ -165,7 +177,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       pageSize: 100,
     }
   );
-  
+
   return {
     paths: posts.results.map(post => ({ params: { slug: post.uid } })),
     fallback: true,
@@ -190,10 +202,16 @@ export const getStaticProps: GetStaticProps = async context => {
   posts.results.forEach((post, i, allPosts) => {
     if (post.uid === slug) {
       if (i > 0) {
-        priorPost = {title: allPosts[i-1].data.title, slug: allPosts[i-1].uid };
+        priorPost = {
+          title: allPosts[i - 1].data.title,
+          slug: allPosts[i - 1].uid,
+        };
       }
-      if (i < allPosts.length-1) {
-        nextPost = {title: allPosts[i+1].data.title, slug: allPosts[i+1].uid };
+      if (i < allPosts.length - 1) {
+        nextPost = {
+          title: allPosts[i + 1].data.title,
+          slug: allPosts[i + 1].uid,
+        };
       }
     }
   });

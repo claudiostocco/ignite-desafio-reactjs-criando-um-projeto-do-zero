@@ -7,7 +7,6 @@ import { FiCalendar, FiUser } from 'react-icons/fi';
 import { useState } from 'react';
 
 import { getPrismicClient } from '../services/prismic';
-import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
 import { SiblingPost } from './post/[slug]';
 
@@ -33,9 +32,13 @@ interface HomeProps {
   preview?: boolean;
 }
 
-export default function Home({ postsPagination, preview = false }: HomeProps): JSX.Element {
+export default function Home({
+  postsPagination,
+  preview = false,
+}: HomeProps): JSX.Element {
   const [postsPage, setPostsPage] = useState(postsPagination);
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const chargeMorePosts = async () => {
     if (postsPage.next_page) {
       const response = await fetch(postsPage.next_page);
@@ -49,16 +52,16 @@ export default function Home({ postsPagination, preview = false }: HomeProps): J
             title: post.data.title,
             subtitle: post.data.subtitle,
             author: post.data.author,
-          }
-        }
+          },
+        };
       });
       setPostsPage(oldPagination => ({
         next_page: postsResponse.next_page,
-        results: [...oldPagination.results, ...posts]
+        results: [...oldPagination.results, ...posts],
       }));
       // }
     }
-  }
+  };
 
   return (
     <main className={styles.container}>
@@ -108,10 +111,13 @@ export default function Home({ postsPagination, preview = false }: HomeProps): J
         )}
       </div>
     </main>
-  )
+  );
 }
 
-export const getStaticProps: GetStaticProps = async ({ preview = false, previewData, }) => {
+export const getStaticProps: GetStaticProps = async ({
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
     [Prismic.predicates.at('document.type', 'posts')],
@@ -130,14 +136,14 @@ export const getStaticProps: GetStaticProps = async ({ preview = false, previewD
         title: post.data.title,
         subtitle: post.data.subtitle,
         author: post.data.author,
-      }
-    }
-  })
+      },
+    };
+  });
 
   const postsPagination = {
     next_page: postsResponse.next_page,
     results: posts,
-  }
+  };
 
   return {
     props: {
